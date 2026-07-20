@@ -187,6 +187,16 @@ class PanelStatement(BaseModel):
     _coerce_confidence = field_validator("confidence", mode="before")(_as_confidence)
 
 
+class PanelStatements(BaseModel):
+    """Wrapper for the collect_positions output — the five role statements before adjudication.
+
+    Kept separate from MethodsDecisionRecord so the chair can leave the record's panel_statements
+    empty (saving its output budget for the decision) and the CLI recombines the two afterwards.
+    """
+
+    statements: list[PanelStatement] = Field(default_factory=list)
+
+
 class MethodsDecisionRecord(BaseModel):
     """ADR-style record for a methodological decision. The deliverable of ``panel``."""
 

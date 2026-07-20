@@ -17,7 +17,15 @@ import yaml
 from .crews import build_panel_crew, build_review_crew
 from .parsing import parse_as
 from .render import record_to_markdown, review_to_markdown
-from .schemas import EvidenceTable, MethodsDecisionRecord, ReviewReport, SearchStrategy
+import json_repair
+
+from .schemas import (
+    EvidenceTable,
+    MethodsDecisionRecord,
+    PanelStatement,
+    ReviewReport,
+    SearchStrategy,
+)
 from .settings import ROOT, settings
 
 PRESETS_PATH = ROOT / "examples" / "presets.yaml"
@@ -72,6 +80,23 @@ def run_panel(args: argparse.Namespace) -> None:
     )
     result = crew.kickoff()
     record = parse_as(MethodsDecisionRecord, result.raw)
+
+    # The chair is told to leave panel_statements empty so it spends its output budget on the
+    # decision (disagreements, consensus, protocol) rather than re-transcribing the five positions.
+    # Recover them here from the collect_positions task, mirroring how the review recombines its
+    # evidence table. Best-effort: if the shape differs, the record still stands on its synthesis.
+    if not record.panel_statements and len(result.tasks_output) > 1:
+        from .parsing import extract_json
+        import json
+
+        try:
+            raw = extract_json(result.tasks_output[1].raw)
+            data = json.loads(json_repair.repair_json(raw))
+            items = data.get("statements", data) if isinstance(data, dict) else data
+            record.panel_statements = [PanelStatement.model_validate(s) for s in items]
+        except Exception:
+            pass  # best-effort: the record still stands on its synthesis
+
     _write("methods_decision_record", record, record_to_markdown(record))
     print(f"\nUsage: {result.token_usage}")
 

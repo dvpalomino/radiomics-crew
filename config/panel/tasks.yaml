@@ -31,31 +31,37 @@ collect_positions:
     Do not converge yet. A panel that agrees at this stage has not been probed hard enough — send
     back any position that rests on assertion where evidence was available.
   expected_output: >
-    One PanelStatement per role, each with rationale, evidence, cross-role concerns and confidence.
+    A JSON object {"statements": [...]} with one entry per role, each carrying role, position,
+    rationale, evidence (list), concerns_about_other_roles (list) and confidence.
   context: [gather_evidence]
 
 adjudicate:
   description: >
-    Confront the positions with each other. Identify where the disagreement is real and where it is
-    only vocabulary. For each real disagreement, state what evidence would settle it — and whether
-    that evidence exists.
-    Then produce the decision: an ordered, executable protocol, not a list of principles. "Use FBS
-    with a bin width of 25 HU on images resampled to 1x1x1 mm with a B-spline interpolator" is a
-    protocol; "choose an appropriate discretisation" is not.
-    Preserve dissent in `points_of_disagreement`. If the biostatistician says the cohort cannot support
-    the target claim, that goes in the record even if the rest of the panel is enthusiastic. Manufactured
-    consensus is the specific failure this panel exists to prevent.
-    List what must be reported for the work to be reproducible, the residual risks, and the conditions
-    under which this decision should be revisited.
+    You are writing the DECISION, not a transcript. The five panel statements already exist from the
+    previous step — do NOT reproduce them. Your job is the synthesis that follows from them.
 
-    Be disciplined about length so the JSON stays complete. In panel_statements, summarise each role's
-    position in 2-3 sentences — do NOT reproduce their full argument verbatim, it already exists in the
-    collect_positions output. At most 8 points_of_disagreement, 8 protocol steps, 6 reproducibility
-    requirements, each ONE sentence. Output the complete JSON object and nothing after it; every closing
-    field (consensus, recommended_protocol, residual_risks, revisit_if) must be present. A truncated
-    record that omits the protocol and the disagreements is the one failure this task must avoid.
+    Write the JSON fields in THIS ORDER, and put your effort into the later ones — they are the point
+    of the whole exercise and the ones that get lost if you run long:
+      1. question, context, options_considered — one line each, brief.
+      2. panel_statements — leave this as an EMPTY LIST []. The statements are carried in separately;
+         do not rewrite them here. This is the single most important instruction: rewriting the five
+         statements is what truncates the record before the decision is written.
+      3. points_of_disagreement — the real ones, not vocabulary differences. If the biostatistician
+         says the cohort cannot support the claim, it goes here even if the rest are enthusiastic.
+         Manufactured consensus is the specific failure this panel exists to prevent. At most 8, one
+         sentence each.
+      4. consensus — 2-4 sentences: where the panel actually landed, and on what it did not.
+      5. recommended_protocol — an ordered, executable protocol, not principles. "FBS, bin width 25 HU,
+         on images resampled to 1x1x1 mm with a B-spline interpolator" is a protocol; "choose an
+         appropriate discretisation" is not. At most 8 steps.
+      6. reproducibility_requirements (max 6), residual_risks, revisit_if — one sentence each.
+
+    Output the complete JSON object and nothing after it. A record that reaches panel_statements and
+    stops — with the disagreements, consensus and protocol empty — is the one failure this task exists
+    to avoid. Those four fields matter more than everything above them.
   expected_output: >
-    A complete MethodsDecisionRecord: options considered, all panel statements, explicit disagreements,
-    the consensus, the ordered protocol, reproducibility requirements, residual risks and revisit triggers.
+    A complete MethodsDecisionRecord whose points_of_disagreement, consensus, recommended_protocol,
+    reproducibility_requirements, residual_risks and revisit_if are ALL populated. panel_statements
+    may be an empty list — the statements are supplied separately.
   context: [gather_evidence, collect_positions]
   output_file: outputs/methods_decision_record.json
