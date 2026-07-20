@@ -24,9 +24,7 @@ def test_agents_are_fully_specified(path):
         assert len(spec["backstory"]) > 200, f"{name} has a thin backstory — specificity is the whole trick"
 
 
-@pytest.mark.parametrize(
-    "agents_path,tasks_path", [(REVIEW / "agents.yaml", REVIEW / "tasks.yaml")]
-)
+@pytest.mark.parametrize("agents_path,tasks_path", [(REVIEW / "agents.yaml", REVIEW / "tasks.yaml")])
 def test_review_tasks_reference_real_agents(agents_path, tasks_path):
     agents = set(_load(agents_path))
     tasks = _load(tasks_path)

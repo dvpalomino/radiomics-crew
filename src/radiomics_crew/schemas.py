@@ -30,6 +30,8 @@ def _as_modality(value):
         return "unclear"
     cleaned = value.strip()
     return cleaned if cleaned else "unclear"
+
+
 Confidence = Literal["low", "moderate", "high"]
 Reported = Literal["yes", "no", "not stated"]
 
@@ -114,12 +116,17 @@ class PaperCard(BaseModel):
     pmid: str = NR
     title: str
     journal_year: str = Field(default=NR, description="e.g. 'Eur Radiol 2021'")
-    modality: str = Field(default="unclear", description='One of CT/MRI/PET/PET-CT/US/multimodal, or a comma-list if the study spans several')
+    modality: str = Field(
+        default="unclear",
+        description="One of CT/MRI/PET/PET-CT/US/multimodal, or a comma-list if the study spans several",
+    )
     tumour_site: str = NR
     n_patients: str = Field(default=NR, description="Cohort size as stated, or 'not reported'")
     design: str = Field(default=NR, description="e.g. 'retrospective single-centre'")
     segmentation: str = Field(default=NR, description="Manual/semi-auto/DL; readers; agreement")
-    preprocessing: str = Field(default=NR, description="Resampling, discretisation (FBN/FBS + value), normalisation")
+    preprocessing: str = Field(
+        default=NR, description="Resampling, discretisation (FBN/FBS + value), normalisation"
+    )
     harmonisation: str = Field(default=NR, description="ComBat, image-level, or 'none'")
     validation: str = Field(default=NR, description="Internal CV / hold-out / external cohort")
     main_result: str = NR
@@ -128,8 +135,18 @@ class PaperCard(BaseModel):
     risk_of_bias: Confidence = Field(default="moderate", description="Level of concern, not level of quality")
 
     _coerce_strs = field_validator(
-        "pmid", "n_patients", "title", "journal_year", "tumour_site", "design", "segmentation",
-        "preprocessing", "harmonisation", "validation", "main_result", mode="before",
+        "pmid",
+        "n_patients",
+        "title",
+        "journal_year",
+        "tumour_site",
+        "design",
+        "segmentation",
+        "preprocessing",
+        "harmonisation",
+        "validation",
+        "main_result",
+        mode="before",
     )(_as_str)
     _coerce_modality = field_validator("modality", mode="before")(_as_modality)
     _coerce_limitations = field_validator("limitations", mode="before")(_as_list)
@@ -158,7 +175,9 @@ class ReviewReport(BaseModel):
     question: str
     n_screened: int
     n_included: int
-    synthesis: str = Field(description="Narrative synthesis grouped by methodological choice, not paper by paper")
+    synthesis: str = Field(
+        description="Narrative synthesis grouped by methodological choice, not paper by paper"
+    )
     methodological_gaps: list[str] = Field(default_factory=list)
     reproducibility_concerns: list[str] = Field(default_factory=list)
     open_questions: list[str] = Field(default_factory=list)

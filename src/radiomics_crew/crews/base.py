@@ -73,7 +73,7 @@ def build_agents(
             llm=build_llm(spec.get("llm_key", "worker")),
             allow_delegation=allow_delegation,
             verbose=True,
-            max_iter=12,          # guardrail: bounded reasoning, no infinite tool loops
-            max_rpm=20,           # guardrail: stay inside provider and NCBI rate limits
+            max_iter=12,  # guardrail: bounded reasoning, no infinite tool loops
+            max_rpm=20,  # guardrail: stay inside provider and NCBI rate limits
         )
     return agents

@@ -1,8 +1,8 @@
 """Command line entry point.
 
-    python -m radiomics_crew review --question "..." --min-year 2019
-    python -m radiomics_crew panel  --preset fbn_vs_fbs_ct
-    python -m radiomics_crew panel  --question "..." --option A --option B --context "..."
+python -m radiomics_crew review --question "..." --min-year 2019
+python -m radiomics_crew panel  --preset fbn_vs_fbs_ct
+python -m radiomics_crew panel  --question "..." --option A --option B --context "..."
 """
 
 from __future__ import annotations
@@ -10,15 +10,13 @@ from __future__ import annotations
 import argparse
 import json
 import sys
-from pathlib import Path
 
+import json_repair
 import yaml
 
 from .crews import build_panel_crew, build_review_crew
 from .parsing import parse_as
 from .render import record_to_markdown, review_to_markdown
-import json_repair
-
 from .schemas import (
     EvidenceTable,
     MethodsDecisionRecord,
@@ -86,8 +84,9 @@ def run_panel(args: argparse.Namespace) -> None:
     # Recover them here from the collect_positions task, mirroring how the review recombines its
     # evidence table. Best-effort: if the shape differs, the record still stands on its synthesis.
     if not record.panel_statements and len(result.tasks_output) > 1:
-        from .parsing import extract_json
         import json
+
+        from .parsing import extract_json
 
         try:
             raw = extract_json(result.tasks_output[1].raw)

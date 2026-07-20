@@ -39,7 +39,7 @@ def build_review_crew(question: str, scope: str = "no additional constraints", m
             "evidence_screener": [pubmed_search, pubmed_fetch],
             "methods_appraiser": [pubmed_fetch, full_text, ibsi],
             "scientific_writer": [],  # the writer gets no search tools on purpose: it can only
-        },                            # write from the evidence table, which makes fabrication harder
+        },  # write from the evidence table, which makes fabrication harder
     )
 
     task_specs = load_yaml(str(settings.config_dir / "review" / "tasks.yaml"))
@@ -76,7 +76,7 @@ def build_review_crew(question: str, scope: str = "no additional constraints", m
         agents=list(agents.values()),
         tasks=list(tasks.values()),
         process=Process.sequential,
-        memory=settings.use_memory,   # see Settings.use_memory: the default embedder is OpenAI's
-        cache=True,    # PubMed answers do not change between tasks in a single run
+        memory=settings.use_memory,  # see Settings.use_memory: the default embedder is OpenAI's
+        cache=True,  # PubMed answers do not change between tasks in a single run
         verbose=True,
     )

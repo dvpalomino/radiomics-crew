@@ -10,7 +10,7 @@ from __future__ import annotations
 import pytest
 import yaml
 
-from radiomics_crew.schemas import MethodsDecisionRecord, PaperCard, PanelStatement
+from radiomics_crew.schemas import MethodsDecisionRecord, PaperCard
 from radiomics_crew.settings import settings
 from radiomics_crew.tools import IBSIChecklistTool
 
@@ -40,7 +40,9 @@ def test_checklist_yaml_is_wellformed():
         for entry in entries:
             assert {"id", "item", "keywords"} <= set(entry), f"malformed entry in {stage}"
             assert entry["keywords"], f"{entry['id']} has no keywords"
-            assert all(kw == kw.lower() for kw in entry["keywords"]), f"{entry['id']} keywords must be lowercase"
+            assert all(kw == kw.lower() for kw in entry["keywords"]), (
+                f"{entry['id']} keywords must be lowercase"
+            )
 
 
 def test_checklist_ids_are_unique():
@@ -162,8 +164,8 @@ def test_shape_hint_lists_literal_options():
     from radiomics_crew.schemas import EvidenceTable, PaperCard, ReviewReport
 
     hint = shape_hint(PaperCard)
-    assert '"yes" | "no" | "not stated"' in hint       # ibsi_compliant stays a strict enum
-    assert '"low" | "moderate" | "high"' in hint        # risk_of_bias too
+    assert '"yes" | "no" | "not stated"' in hint  # ibsi_compliant stays a strict enum
+    assert '"low" | "moderate" | "high"' in hint  # risk_of_bias too
     assert "[str, ...]" in hint  # lists render their element type
 
     assert '"low" | "moderate" | "high"' in shape_hint(ReviewReport)
@@ -187,12 +189,15 @@ def test_papercard_coerces_the_mistakes_models_actually_make():
     from radiomics_crew.parsing import parse_as
     from radiomics_crew.schemas import PaperCard
 
-    card = parse_as(PaperCard, """{
+    card = parse_as(
+        PaperCard,
+        """{
         "pmid": "38294307", "title": "Precise 3D CT Radiomics",
         "limitations": "NOT_OPEN_ACCESS: full text unavailable. Completeness 23%.",
         "risk_of_bias": "HIGH — Absence of full-text verification prevents assessment.",
         "ibsi_compliant": "not stated"
-    }""")
+    }""",
+    )
     assert card.risk_of_bias == "high"
     assert card.limitations == ["NOT_OPEN_ACCESS: full text unavailable. Completeness 23%."]
 
@@ -214,7 +219,6 @@ def test_enums_default_instead_of_crashing_on_garbage():
     assert clean.ibsi_compliant == "yes" and clean.risk_of_bias == "high"
 
 
-
 def test_papercard_accepts_numeric_pmid_and_multivalue_modality():
     """The second real failed run: the model wrote PMIDs and cohort sizes as JSON numbers, and
     gave modality as 'CT, MRI, PET/CT' for studies that genuinely span several. Both are the
@@ -222,11 +226,14 @@ def test_papercard_accepts_numeric_pmid_and_multivalue_modality():
     from radiomics_crew.parsing import parse_as
     from radiomics_crew.schemas import EvidenceTable
 
-    table = parse_as(EvidenceTable, """{"included": [
+    table = parse_as(
+        EvidenceTable,
+        """{"included": [
         {"pmid": 30845221, "title": "A", "modality": "MRI", "n_patients": 104},
         {"pmid": 39123396, "title": "B", "modality": "CT, MRI, CBCT, PET/CT", "n_patients": "not reported"}
-    ]}""")
-    assert table.included[0].pmid == "30845221"      # coerced int -> str
+    ]}""",
+    )
+    assert table.included[0].pmid == "30845221"  # coerced int -> str
     assert table.included[0].n_patients == "104"
     assert table.included[1].modality == "CT, MRI, CBCT, PET/CT"  # multi-value survives
 
@@ -266,5 +273,5 @@ def test_truncated_decision_record_is_recovered():
     assert record.question == "FBS vs FBN?"
     assert record.options_considered == ["A", "B", "C", "D"]
     assert record.panel_statements[0].role == "Radiologist"
-    assert record.consensus == ""          # safe default, not a crash
+    assert record.consensus == ""  # safe default, not a crash
     assert record.points_of_disagreement == []

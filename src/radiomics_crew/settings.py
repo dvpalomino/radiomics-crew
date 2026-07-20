@@ -25,7 +25,8 @@ class Settings:
     # it. Any numeric value is passed through as before.
     temperature: float | None = field(
         default_factory=lambda: (
-            None if os.getenv("RC_TEMPERATURE", "0.2").lower() in {"off", "none", ""}
+            None
+            if os.getenv("RC_TEMPERATURE", "0.2").lower() in {"off", "none", ""}
             else float(os.getenv("RC_TEMPERATURE", "0.2"))
         )
     )

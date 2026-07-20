@@ -69,7 +69,9 @@ class IBSIChecklistTool(BaseTool):
                 total += 1
                 if matched:
                     hits += 1
-                    lines.append(f"  REPORTED     {entry['id']} — {entry['item']}  (matched: {', '.join(matched[:3])})")
+                    lines.append(
+                        f"  REPORTED     {entry['id']} — {entry['item']}  (matched: {', '.join(matched[:3])})"
+                    )
                 else:
                     missing.append(f"{entry['id']}: {entry['item']}")
                     lines.append(f"  NOT REPORTED {entry['id']} — {entry['item']}")
@@ -77,7 +79,10 @@ class IBSIChecklistTool(BaseTool):
         score = 100 * hits / total if total else 0
         header = (
             f"Reporting completeness: {hits}/{total} items ({score:.0f}%)\n"
-            f"Caveat: keyword-based. A REPORTED item means the wording is present, not that the choice was sound."
+            f"Caveat: keyword-based. A REPORTED item means the wording is present, "
+            f"not that the choice was sound."
         )
-        tail = "\n\nMost consequential gaps:\n" + "\n".join(f"  - {m}" for m in missing[:8]) if missing else ""
+        tail = (
+            "\n\nMost consequential gaps:\n" + "\n".join(f"  - {m}" for m in missing[:8]) if missing else ""
+        )
         return header + "\n".join(lines) + tail

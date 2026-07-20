@@ -24,7 +24,8 @@ class PubMedSearchTool(BaseTool):
     name: str = "pubmed_search"
     description: str = (
         "Search PubMed with a boolean query and return matching PMIDs with titles. "
-        "Use real PubMed syntax ([tiab], [mh], AND/OR/NOT). Returns 'NO_RESULTS' when the query is too narrow."
+        "Use real PubMed syntax ([tiab], [mh], AND/OR/NOT). "
+        "Returns 'NO_RESULTS' when the query is too narrow."
     )
     args_schema: type[BaseModel] = PubMedSearchInput
 

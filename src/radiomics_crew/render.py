@@ -11,7 +11,7 @@ from .schemas import EvidenceTable, MethodsDecisionRecord, ReviewReport, SearchS
 
 def review_to_markdown(report: ReviewReport, table: EvidenceTable, strategy: SearchStrategy) -> str:
     lines = [
-        f"# Radiomics evidence review\n",
+        "# Radiomics evidence review\n",
         f"**Question:** {report.question}\n",
         f"**Screened:** {report.n_screened} | **Included:** {report.n_included} "
         f"| **Confidence in body of evidence:** {report.confidence_in_body_of_evidence}\n",
@@ -23,7 +23,10 @@ def review_to_markdown(report: ReviewReport, table: EvidenceTable, strategy: Sea
     lines.append("\n**Exclusion:** " + "; ".join(strategy.exclusion_criteria))
 
     lines.append("\n## Evidence table\n")
-    lines.append("| PMID | Journal/Year | Modality | Site | n | Design | Preprocessing | Harmonisation | Validation | IBSI | RoB |")
+    lines.append(
+        "| PMID | Journal/Year | Modality | Site | n | Design "
+        "| Preprocessing | Harmonisation | Validation | IBSI | RoB |"
+    )
     lines.append("|---|---|---|---|---|---|---|---|---|---|---|")
     for paper in table.included:
         lines.append(

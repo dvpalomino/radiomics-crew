@@ -16,10 +16,9 @@ from __future__ import annotations
 
 import json
 import re
+from typing import Literal, TypeVar, get_args, get_origin
 
 import json_repair
-from typing import List, Literal, TypeVar, get_args, get_origin
-
 from pydantic import BaseModel, ValidationError
 
 T = TypeVar("T", bound=BaseModel)
@@ -37,7 +36,7 @@ def _render_type(annotation) -> str:
 
     if origin is Literal:
         return " | ".join(f'"{v}"' for v in get_args(annotation))
-    if origin in (list, List):
+    if origin in (list, list):
         inner = get_args(annotation)
         return f"[{_render_type(inner[0])}, ...]" if inner else "[...]"
     if isinstance(annotation, type) and issubclass(annotation, BaseModel):
