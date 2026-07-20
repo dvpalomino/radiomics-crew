@@ -21,7 +21,14 @@ class Settings:
     manager_model: str = field(
         default_factory=lambda: os.getenv("RC_MANAGER_MODEL", os.getenv("RC_MODEL", "gpt-4o"))
     )
-    temperature: float = field(default_factory=lambda: float(os.getenv("RC_TEMPERATURE", "0.2")))
+    # None (RC_TEMPERATURE=off) omits the parameter entirely — required for models that reject
+    # it. Any numeric value is passed through as before.
+    temperature: float | None = field(
+        default_factory=lambda: (
+            None if os.getenv("RC_TEMPERATURE", "0.2").lower() in {"off", "none", ""}
+            else float(os.getenv("RC_TEMPERATURE", "0.2"))
+        )
+    )
     max_papers: int = field(default_factory=lambda: int(os.getenv("RC_MAX_PAPERS", "25")))
 
     # Off by default. crewAI's memory needs an embedder, and its default embedder is OpenAI's —

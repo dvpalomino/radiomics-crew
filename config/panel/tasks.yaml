@@ -47,6 +47,13 @@ adjudicate:
     consensus is the specific failure this panel exists to prevent.
     List what must be reported for the work to be reproducible, the residual risks, and the conditions
     under which this decision should be revisited.
+
+    Be disciplined about length so the JSON stays complete. In panel_statements, summarise each role's
+    position in 2-3 sentences — do NOT reproduce their full argument verbatim, it already exists in the
+    collect_positions output. At most 8 points_of_disagreement, 8 protocol steps, 6 reproducibility
+    requirements, each ONE sentence. Output the complete JSON object and nothing after it; every closing
+    field (consensus, recommended_protocol, residual_risks, revisit_if) must be present. A truncated
+    record that omits the protocol and the disagreements is the one failure this task must avoid.
   expected_output: >
     A complete MethodsDecisionRecord: options considered, all panel statements, explicit disagreements,
     the consensus, the ordered protocol, reproducibility requirements, residual risks and revisit triggers.

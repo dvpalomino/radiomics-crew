@@ -31,9 +31,17 @@ def build_llm(key: str = "worker") -> LLM:
     a weaker model drifts.
     """
     model = settings.manager_model if key == "manager" else settings.model
-    # The writer's report (synthesis + gaps + concerns + references) is long by design and was
-    # hitting the default output ceiling mid-JSON, truncating the closing fields. Give it room.
-    return LLM(model=model, temperature=settings.temperature, max_tokens=settings.max_output_tokens)
+
+    # Some newer models (the reasoning-tier ones typically used for the manager) reject the
+    # `temperature` parameter outright — the API returns "temperature is deprecated for this
+    # model". Rather than hardcode a model list that goes stale, only send temperature when it
+    # is configured, and let it be turned off per-run for models that refuse it.
+    kwargs: dict[str, object] = {"max_tokens": settings.max_output_tokens}
+    if settings.temperature is not None:
+        kwargs["temperature"] = settings.temperature
+
+    # The writer's report is long by design and was hitting the default output ceiling mid-JSON.
+    return LLM(model=model, **kwargs)
 
 
 def build_agents(

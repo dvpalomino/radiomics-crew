@@ -175,8 +175,8 @@ class PanelStatement(BaseModel):
     """One expert's position. Dissent is a feature, not noise to be averaged away."""
 
     role: str
-    position: str
-    rationale: str
+    position: str = ""
+    rationale: str = ""
     evidence: list[str] = Field(
         default_factory=list, description="PMIDs, or the literal string 'expert opinion, no citation'"
     )
@@ -191,14 +191,21 @@ class MethodsDecisionRecord(BaseModel):
     """ADR-style record for a methodological decision. The deliverable of ``panel``."""
 
     question: str
-    context: str
-    options_considered: list[str]
-    panel_statements: list[PanelStatement]
+    context: str = ""
+    options_considered: list[str] = Field(default_factory=list)
+    panel_statements: list[PanelStatement] = Field(default_factory=list)
     points_of_disagreement: list[str] = Field(
-        description="Must be non-empty if the panel disagreed; do not manufacture false consensus"
+        default_factory=list,
+        description="Must be non-empty if the panel disagreed; do not manufacture false consensus",
     )
-    consensus: str
-    recommended_protocol: list[str] = Field(description="Ordered, executable steps — not principles")
-    reproducibility_requirements: list[str] = Field(description="IBSI / CLAIM / TRIPOD+AI reporting items")
-    residual_risks: list[str]
-    revisit_if: list[str] = Field(description="Conditions that would invalidate this decision")
+    consensus: str = ""
+    recommended_protocol: list[str] = Field(
+        default_factory=list, description="Ordered, executable steps — not principles"
+    )
+    reproducibility_requirements: list[str] = Field(
+        default_factory=list, description="IBSI / CLAIM / TRIPOD+AI reporting items"
+    )
+    residual_risks: list[str] = Field(default_factory=list)
+    revisit_if: list[str] = Field(
+        default_factory=list, description="Conditions that would invalidate this decision"
+    )

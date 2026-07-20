@@ -102,15 +102,17 @@ def test_schemas_stay_within_provider_complexity_limits():
     assert "$defs" not in json.dumps(ReviewReport.model_json_schema())
 
 
-def test_decision_record_requires_a_protocol():
-    with pytest.raises(Exception):
-        MethodsDecisionRecord(
-            question="q", context="c", options_considered=["a", "b"],
-            panel_statements=[PanelStatement(role="r", position="p", rationale="why")],
-            points_of_disagreement=["d"], consensus="c",
-            # recommended_protocol omitted on purpose
-            reproducibility_requirements=["x"], residual_risks=["y"], revisit_if=["z"],
-        )
+def test_decision_record_prompt_demands_a_protocol():
+    """The protocol is the point of the record, and the adjudicate prompt must insist on it.
+    (The schema no longer *rejects* a record without one: a run truncated by the output ceiling
+    should keep what it produced rather than being discarded — see
+    test_truncated_decision_record_is_recovered. The 'must have a protocol' contract lives in the
+    prompt, enforced on the model, not in a post-hoc validation that would throw away a paid run.)"""
+    from radiomics_crew.settings import settings
+
+    tasks = (settings.config_dir / "panel" / "tasks.yaml").read_text()
+    assert "recommended_protocol" in tasks
+    assert "ordered, executable protocol" in tasks.lower()
 
 
 def test_no_pydantic_schema_reaches_the_provider():
@@ -246,3 +248,23 @@ def test_truncated_report_is_recovered_not_lost():
     assert report.methodological_gaps == ["only 3 CT studies"]
     assert report.confidence_in_body_of_evidence == "low"  # safe default, not a crash
     assert report.references == []
+
+
+def test_truncated_decision_record_is_recovered():
+    """The panel's adjudicate step ran into the output ceiling mid-JSON, cut off at
+    'no normalisation, if' — a real failure. What was written must survive; the missing
+    closing fields default rather than discarding a long (and costly) hierarchical run."""
+    from radiomics_crew.parsing import parse_as
+    from radiomics_crew.schemas import MethodsDecisionRecord
+
+    truncated = (
+        '{"question": "FBS vs FBN?", "context": "multicentre CT",'
+        ' "options_considered": ["A", "B", "C", "D"],'
+        ' "panel_statements": [{"role": "Radiologist", "position": "FBN, no normalisation, if'
+    )
+    record = parse_as(MethodsDecisionRecord, truncated)
+    assert record.question == "FBS vs FBN?"
+    assert record.options_considered == ["A", "B", "C", "D"]
+    assert record.panel_statements[0].role == "Radiologist"
+    assert record.consensus == ""          # safe default, not a crash
+    assert record.points_of_disagreement == []
