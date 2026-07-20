@@ -1,0 +1,88 @@
+# Focus rule from the course: one agent, one job, narrow tools. Each task declares its
+# expected_output and a pydantic schema so a task cannot 'succeed' by returning vibes.
+
+build_search_strategy:
+  description: >
+    Research question: "{question}"
+    Scope constraints from the requester: {scope}
+
+    Decompose the question into PICOS. Then write 2-4 PubMed boolean queries: one deliberately
+    broad (high recall), one focused, and optional variants covering synonym drift in the field.
+    Cover the terminology spread of this literature: radiomics, texture analysis, quantitative
+    imaging features, delta-radiomics, habitat imaging.
+    Run each query with the pubmed_search tool, limited to {min_year} onwards.
+    If a query returns NO_RESULTS, broaden it and retry — do not report an empty strategy as a finding.
+    State inclusion and exclusion criteria explicitly enough that a second reviewer would apply them
+    the same way.
+  expected_output: >
+    A SearchStrategy object: the PICOS breakdown, the literal queries that were actually executed,
+    and the inclusion/exclusion criteria.
+  agent: search_strategist
+
+screen_records:
+  description: >
+    Take the queries from the search strategy and retrieve the hits. Fetch abstracts in batches with
+    pubmed_fetch_abstracts — never screen on titles.
+    Apply the inclusion and exclusion criteria to each record. For every excluded record, record the
+    title and a specific reason ("no radiomic features extracted", "review article", "n < 20").
+    Cap inclusions at {max_papers}, prioritising: external validation > multicentre > cohort size > recency.
+    For every field you cannot verify from the abstract, write "not reported". Do not infer cohort
+    size, scanner or design from context. A missing field is data.
+  expected_output: >
+    An EvidenceTable with `included` populated at abstract level and `excluded` carrying one
+    explicit reason per dropped record.
+  agent: evidence_screener
+  context: [build_search_strategy]
+
+appraise_methods:
+  description: >
+    For each included paper, call europepmc_full_text to obtain the Methods section, then run
+    ibsi_reporting_checklist on that text.
+    Upgrade each PaperCard with what the full text actually says: segmentation protocol and reader
+    agreement, resampling and interpolator, discretisation (FBN vs FBS and the value), normalisation,
+    harmonisation, extraction software and version, IBSI compliance, feature selection placement
+    relative to the cross-validation loop, and validation design.
+    When a paper returns NOT_OPEN_ACCESS, set the unverifiable fields to "not verifiable from abstract"
+    and raise its risk_of_bias accordingly — absence of evidence is not evidence of good methodology.
+    Set `ibsi_compliant` to "not stated" unless the authors explicitly claim compliance — "not stated"
+    and "no" are different findings. Never infer compliance from the mere use of PyRadiomics.
+    Every field you cannot verify gets the literal string "not reported"; never omit a key and never
+    substitute a plausible value.
+
+    Keep every field SHORT — one sentence, roughly 20 words. `risk_of_bias` takes exactly one word:
+    low, moderate or high, with no explanation attached. `limitations` is a list of brief bullets,
+    one clause each, not a paragraph. Do NOT paste the checklist tool's output into a field; use it
+    to decide the values and report the score in one bullet. The whole table is one JSON object that
+    must stay syntactically valid — verbosity is what breaks it.
+    Write `pmid` and `n_patients` as JSON strings (in quotes). For `modality`, if a study uses more
+    than one, give them comma-separated ("CT, MRI"); otherwise a single value.
+  expected_output: >
+    The same EvidenceTable, with every included PaperCard verified against full text where available,
+    each carrying a risk_of_bias judgement and concrete limitations.
+  agent: methods_appraiser
+  context: [build_search_strategy, screen_records]
+
+write_review:
+  description: >
+    Write the review for question "{question}".
+    Organise the synthesis by methodological choice — discretisation, normalisation, harmonisation,
+    segmentation source, validation design — and report how the evidence splits on each. Where studies
+    disagree, say what differs in their setup rather than counting votes.
+    Name the methodological gaps and the reproducibility concerns bluntly. Grade the confidence in the
+    body of evidence and justify the grade.
+    Cite only papers present in the evidence table. If the included set is thin, say so — a two-paper
+    base does not support a strong recommendation, and writing as though it does is the failure mode
+    this crew exists to avoid.
+
+    Be disciplined about length — this is a decision aid, not a systematic review. The synthesis is
+    at most ~600 words of prose. Give at most 8 methodological_gaps, 8 reproducibility_concerns and
+    6 open_questions, each ONE sentence. Depth of judgement matters, not volume; an exhaustive dump
+    truncates the JSON and loses the whole report. Output the complete JSON object and nothing after
+    it — every closing field (open_questions, confidence_in_body_of_evidence, references) must be
+    present. references is required: one Vancouver-style line per included paper.
+  expected_output: >
+    A complete ReviewReport with the synthesis, gaps, reproducibility concerns, open questions,
+    a confidence grade, and Vancouver-style references for every included paper.
+  agent: scientific_writer
+  context: [build_search_strategy, screen_records, appraise_methods]
+  output_file: outputs/review_report.json

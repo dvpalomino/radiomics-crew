@@ -1,0 +1,47 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "radiomics-crew"
+version = "0.1.0"
+description = "Multi-agent systems for radiomics literature review and methodology consensus, built with crewAI"
+readme = "README.md"
+# Upper bound is not cosmetic: crewAI itself caps at <3.14, and without this line pip
+# installs the package happily and only fails later, deep in dependency resolution.
+requires-python = ">=3.10,<3.14"
+license = { text = "MIT" }
+keywords = ["radiomics", "medical-imaging", "crewai", "multi-agent", "llm", "ibsi", "systematic-review"]
+
+dependencies = [
+    # [anthropic] pulls the native provider; crewAI 1.x ships providers as extras.
+    # Swap or add extras to match your provider: crewai[openai], crewai[google], ...
+    "crewai[anthropic]>=1.0,<2.0",
+    "crewai-tools>=0.12",
+    "pydantic>=2.6",
+    # LLM-authored JSON of any length eventually drops a comma; repair beats re-running.
+    "json-repair>=0.25",   # crewAI pins ~=0.25.2; stay compatible with its resolver
+    "requests>=2.31",
+    "pyyaml>=6.0",
+    "python-dotenv>=1.0",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8.0", "ruff>=0.5"]
+
+[project.scripts]
+radiomics-crew = "radiomics_crew.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 110
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]

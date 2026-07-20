@@ -1,0 +1,54 @@
+# Hierarchical process: the chair holds the original goal while the specialists drift into
+# their own concerns, delegates, and sends thin positions back. Tasks below carry no `agent`
+# field on purpose — under Process.hierarchical the manager assigns them.
+
+gather_evidence:
+  description: >
+    Methodological question under discussion: "{question}"
+    Clinical context: {context}
+    Options on the table: {options}
+
+    Before anyone states a position, establish what the literature actually says. Search PubMed for
+    evidence bearing directly on the options, fetch abstracts, and pull the Methods of the most
+    relevant open-access papers.
+    Separate three things explicitly: what is empirically supported, what is convention repeated
+    without evidence, and what is genuinely unresolved. The middle category is usually the largest
+    and is the one the panel most needs flagged.
+  expected_output: >
+    An evidence brief: for each option, the supporting studies with PMIDs, what they measured and in
+    which population, plus an explicit list of what nobody appears to have tested.
+
+collect_positions:
+  description: >
+    Each panel member states a position on "{question}", from their own role, in their own interest.
+    Every position must carry: the position itself, the rationale, the evidence (a PMID from the brief,
+    or the literal words "expert opinion, no citation" — never a fabricated citation), and a confidence
+    level.
+    Each member must also state their concerns about the other roles' likely positions. The
+    radiologist should push back on unimplementable elegance; the biostatistician on underpowered
+    claims; the engineer on non-determinism; the regulatory advisor on undocumentable choices; the
+    methodologist on standards being waved away.
+    Do not converge yet. A panel that agrees at this stage has not been probed hard enough — send
+    back any position that rests on assertion where evidence was available.
+  expected_output: >
+    One PanelStatement per role, each with rationale, evidence, cross-role concerns and confidence.
+  context: [gather_evidence]
+
+adjudicate:
+  description: >
+    Confront the positions with each other. Identify where the disagreement is real and where it is
+    only vocabulary. For each real disagreement, state what evidence would settle it — and whether
+    that evidence exists.
+    Then produce the decision: an ordered, executable protocol, not a list of principles. "Use FBS
+    with a bin width of 25 HU on images resampled to 1x1x1 mm with a B-spline interpolator" is a
+    protocol; "choose an appropriate discretisation" is not.
+    Preserve dissent in `points_of_disagreement`. If the biostatistician says the cohort cannot support
+    the target claim, that goes in the record even if the rest of the panel is enthusiastic. Manufactured
+    consensus is the specific failure this panel exists to prevent.
+    List what must be reported for the work to be reproducible, the residual risks, and the conditions
+    under which this decision should be revisited.
+  expected_output: >
+    A complete MethodsDecisionRecord: options considered, all panel statements, explicit disagreements,
+    the consensus, the ordered protocol, reproducibility requirements, residual risks and revisit triggers.
+  context: [gather_evidence, collect_positions]
+  output_file: outputs/methods_decision_record.json

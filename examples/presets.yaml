@@ -1,0 +1,69 @@
+# Real methodological questions, phrased so the panel has something to actually disagree about.
+# A question with an obvious answer produces a boring record; that is a prompt bug, not a model bug.
+
+fbn_vs_fbs_ct:
+  question: >
+    For radiomic feature extraction on contrast-enhanced CT of solid abdominal tumours, should
+    intensity be discretised with a fixed bin size (FBS) in HU or a fixed bin number (FBN), and
+    should z-score normalisation be applied per case or across the cohort before discretisation?
+  context: >
+    Retrospective multicentre cohort, ~200 patients, three scanner vendors, portal-venous phase,
+    slice thickness ranging 1.0-3.0 mm. Target: a binary outcome model with external validation
+    on a fourth centre. Lesion segmentation is the priority; auxiliary structures are secondary.
+  options:
+    - FBS with a fixed bin width in HU, no intensity normalisation (HU is already a calibrated scale)
+    - FBN with a fixed number of bins after per-case z-score normalisation
+    - FBN with a fixed number of bins after cohort-level (intercase) z-score normalisation
+    - FBS after cohort-level z-score normalisation, accepting that bins are then in SD units
+  tumour_site: pancreatic
+  modality: CT
+
+combat_vs_image_harmonisation:
+  question: >
+    Should scanner heterogeneity be handled with feature-level ComBat harmonisation, image-level
+    harmonisation before extraction, or by restricting the cohort to a single protocol?
+  context: >
+    Multicentre CT cohort, five sites, unbalanced site sizes (one site contributes 60% of cases).
+    The outcome prevalence differs by site, which is the exact situation where ComBat can remove
+    biological signal along with the batch effect.
+  options:
+    - Feature-level ComBat with the outcome as a protected covariate
+    - Feature-level ComBat without covariate protection
+    - Image-level harmonisation (resampling and reconstruction-kernel conversion) before extraction
+    - No harmonisation; include site as a random effect in the model
+    - Restrict to the dominant protocol and accept the reduced sample size
+  tumour_site: colorectal
+  modality: CT
+
+dl_segmentation_for_radiomics:
+  question: >
+    Are deep-learning-generated segmentations acceptable as the ROI source for a radiomic
+    signature intended for eventual clinical deployment, or must a radiologist correct every mask?
+  context: >
+    An nnU-Net model reaches a mean Dice of 0.87 on lesions in internal validation, with a long
+    left tail: roughly 10% of cases fall below 0.6. Downstream radiomic features — shape and
+    texture especially — are known to be sensitive to boundary placement.
+  options:
+    - Fully automatic masks, no human review
+    - Automatic masks with radiologist review and correction of every case
+    - Automatic masks with review triggered by a quality/uncertainty score below a threshold
+    - Automatic masks, restricted to features shown stable under boundary perturbation
+  tumour_site: pancreatic
+  modality: CT
+
+pet_delineation_threshold:
+  question: >
+    For PET-based tumour delineation where CT contrast is insufficient, should the ROI come from a
+    fixed SUV threshold, an adaptive threshold, or a learned segmentation, and what does the choice
+    do to the resulting texture features?
+  context: >
+    PET/CT cohort with variable uptake times across two sites. The intended downstream use is a
+    texture-based response model, so the delineation method is not a preprocessing detail — it
+    partly determines the features.
+  options:
+    - Fixed SUV 2.5 threshold
+    - 41% of SUVmax adaptive threshold
+    - Gradient-based delineation
+    - Deep learning segmentation trained on consensus masks
+  tumour_site: oncological
+  modality: PET/CT

@@ -1,0 +1,15 @@
+.env
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+build/
+dist/
+.pytest_cache/
+.ruff_cache/
+db/                 # crewAI memory store
+outputs/*
+!outputs/.gitkeep
+.DS_Store
+.ipynb_checkpoints/

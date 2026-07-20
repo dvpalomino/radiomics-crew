@@ -1,0 +1,90 @@
+# Condensed radiomics reporting checklist, grouped by pipeline stage.
+# Sources of truth (read them, do not trust this file blindly):
+#   - IBSI-1: Zwanenburg et al., Radiology 2020;295(2):328-338 (feature definitions & reference values)
+#   - IBSI-2: Whybra et al., Radiology 2024 (convolutional filter standardisation)
+#   - Image Biomarker Standardisation Initiative documentation: https://ibsi.readthedocs.io
+#   - RQS / METRICS (Kocak et al., Insights Imaging 2024) for quality scoring
+#   - CLAIM and TRIPOD+AI for the modelling and reporting side
+#
+# This is a *reporting* checklist: it flags what a Methods section fails to state.
+# It cannot verify that what is stated is correct.
+
+acquisition:
+  - id: ACQ-1
+    item: Scanner vendor, model and number of centres
+    keywords: [scanner, siemens, ge, philips, canon, toshiba, vendor, centre, center, multicentre, multicenter]
+  - id: ACQ-2
+    item: Acquisition parameters (kVp, mAs, slice thickness, reconstruction kernel; TR/TE/sequence for MRI; tracer, dose, uptake time for PET)
+    keywords: [kvp, mas, slice thickness, kernel, reconstruction, tr, te, sequence, tracer, fdg, uptake time, suv]
+  - id: ACQ-3
+    item: Contrast administration and phase
+    keywords: [contrast, portal venous, arterial, non-contrast, unenhanced, phase]
+
+segmentation:
+  - id: SEG-1
+    item: Who segmented, how many readers, and their experience
+    keywords: [radiologist, reader, observer, annotator, experience, years]
+  - id: SEG-2
+    item: Manual, semi-automatic or automatic; software used
+    keywords: [manual, semi-automatic, semiautomatic, automatic, 3d slicer, itk-snap, nnunet, nnu-net, segmentation software]
+  - id: SEG-3
+    item: Inter-/intra-observer agreement of the segmentation and its effect on feature stability
+    keywords: [inter-observer, intraobserver, inter-rater, icc, dice, reproducibility of segmentation]
+
+preprocessing:
+  - id: PRE-1
+    item: Voxel resampling — target spacing and interpolator
+    keywords: [resampl, isotropic, spacing, interpolat, bspline, b-spline, linear, nearest]
+  - id: PRE-2
+    item: Intensity discretisation — fixed bin number (FBN) or fixed bin size (FBS), and the value used
+    keywords: [discretis, discretiz, bin width, binwidth, bin size, bin number, fbn, fbs, grey level, gray level, quantis, quantiz]
+  - id: PRE-3
+    item: Intensity normalisation / rescaling and the range it was applied over
+    keywords: [normalis, normaliz, z-score, zscore, standardis, rescal, windowing, hu range, clipping]
+  - id: PRE-4
+    item: Filters applied (LoG, wavelet) with IBSI-2 compliant parameters
+    keywords: [wavelet, laplacian of gaussian, log filter, sigma, filter]
+
+extraction:
+  - id: EXT-1
+    item: Feature extraction software and version
+    keywords: [pyradiomics, lifex, cerr, mirp, moddicom, radiomics toolbox, version]
+  - id: EXT-2
+    item: Explicit statement of IBSI compliance (and which IBSI phase)
+    keywords: [ibsi, image biomarker standardisation, image biomarker standardization]
+  - id: EXT-3
+    item: Feature classes extracted and total feature count
+    keywords: [shape, first order, first-order, glcm, glrlm, glszm, gldm, ngtdm, feature count, features were extracted]
+  - id: EXT-4
+    item: Extraction configuration file or parameter file made available
+    keywords: [parameter file, yaml, configuration, settings file, supplementary]
+
+harmonisation:
+  - id: HAR-1
+    item: Batch/scanner effect handling (ComBat, image-level harmonisation, or explicit none)
+    keywords: [combat, harmonis, harmoniz, batch effect, scanner effect, site effect]
+
+modelling:
+  - id: MOD-1
+    item: Feature selection method, applied inside the cross-validation loop
+    keywords: [feature selection, lasso, mrmr, boruta, univariate, correlation filter, nested]
+  - id: MOD-2
+    item: Class imbalance handling and the events-per-variable ratio
+    keywords: [imbalance, smote, class weight, oversampl, undersampl, events per variable, epv]
+  - id: MOD-3
+    item: Validation strategy — internal CV, hold-out, and ideally an external cohort
+    keywords: [cross-validation, cross validation, hold-out, holdout, external validation, independent cohort, test set]
+  - id: MOD-4
+    item: Performance reported with uncertainty (CI) and calibration, not AUC alone
+    keywords: [confidence interval, 95% ci, calibration, brier, bootstrap]
+
+reproducibility:
+  - id: REP-1
+    item: Code availability
+    keywords: [github, gitlab, code is available, code availability, zenodo, repository]
+  - id: REP-2
+    item: Data availability or a stated reason for restriction
+    keywords: [data availability, tcia, public dataset, upon reasonable request, ethics]
+  - id: REP-3
+    item: Ethics approval and consent statement
+    keywords: [ethics, institutional review board, irb, informed consent, helsinki]
